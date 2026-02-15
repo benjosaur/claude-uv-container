@@ -1,8 +1,8 @@
 services:
   claude-code:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
       args:
         TZ: "${TZ:-America/Los_Angeles}"
         CLAUDE_CODE_VERSION: "latest"
@@ -17,7 +17,7 @@ services:
       - NET_ADMIN
       - NET_RAW
     volumes:
-      - .:/workspace:delegated
+      - ..:/workspace:delegated
       - claude-code-bashhistory:/commandhistory
       - ${HOME}/.claude:/home/claude/.claude:cached
     environment:

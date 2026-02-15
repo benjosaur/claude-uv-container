@@ -46,6 +46,9 @@ ENV DEVCONTAINER=true
 RUN mkdir -p /workspace /home/$USERNAME/.claude && \
   chown -R $USERNAME:$USERNAME /workspace /home/$USERNAME/.claude
 
+# Trust all git directories (needed for bind-mounted host repos/worktrees)
+RUN git config --global --add safe.directory '*'
+
 WORKDIR /workspace
 
 ARG GIT_DELTA_VERSION=0.18.2
@@ -81,7 +84,7 @@ RUN curl -fsSL https://claude.ai/install.sh | sh
 ENV PATH="/home/${USERNAME}/.claude/bin:$PATH"
 
 # Copy and set up firewall script
-COPY init-firewall.sh /usr/local/bin/
+COPY docker/init-firewall.sh /usr/local/bin/
 USER root
 RUN chmod +x /usr/local/bin/init-firewall.sh && \
   echo "$USERNAME ALL=(root) NOPASSWD: /usr/local/bin/init-firewall.sh" > /etc/sudoers.d/$USERNAME-firewall && \

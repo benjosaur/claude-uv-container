@@ -8,7 +8,8 @@ A Docker container for running [Claude Code](https://claude.ai) with [uv](https:
 - **uv** — fast Python package/project manager
 - **zsh** with Powerlevel10k, git, and fzf plugins
 - **git-delta** — better git diffs
-- **Optional network firewall** — locks outbound traffic to only Anthropic API and PyPI
+- **Network firewall** — locks outbound traffic to only Anthropic API and PyPI
+- **spawn** — script to spin up Claude instances in git worktrees via iTerm splits
 
 ## Prerequisites
 
@@ -18,23 +19,50 @@ A Docker container for running [Claude Code](https://claude.ai) with [uv](https:
 ## Quick start
 
 ```bash
-docker compose up -d --build
-docker compose exec claude-uv-container zsh
+# Start the container
+docker compose -f docker/docker-compose.yml up -d --build
+
+# Run Claude Code inside it
+docker exec -it claude-uv-container claude
 ```
 
-Once inside the container, run `claude` to start Claude Code. Your host's OAuth session is bind-mounted in, so no login is required.
+Your host's `~/.claude` OAuth session is bind-mounted in, so no login is required.
 
-## Network firewall (optional)
+## Spawning worktree instances
 
-To restrict the container's network access to only essential domains (Anthropic API, PyPI, statsig):
+`spawn.sh` is a host-side script (macOS/iTerm) that creates git worktrees and opens new iTerm splits running Claude Code inside the container.
+
+Add it to your `~/.zshrc` so it's always available:
 
 ```bash
-sudo /usr/local/bin/init-firewall.sh
+source ~/Projects/claude-uv-container/spawn.sh
 ```
 
-This requires the `NET_ADMIN` and `NET_RAW` capabilities, which are already granted in the compose file.
+Then spawn parallel Claude instances:
 
-### Allowed domains
+```bash
+spawn feature/my-thing -p "implement the login flow"
+```
+
+This creates a worktree at `worktrees/my-thing/`, opens an iTerm split, and runs `claude` inside the container pointed at that worktree. The container must already be running.
+
+## Project structure
+
+```
+claude-uv-container/
+├── docker/
+│   ├── Dockerfile
+│   ├── docker-compose.yml
+│   └── init-firewall.sh
+├── worktrees/              # git worktrees (gitignored)
+├── spawn.sh
+├── README.md
+└── .gitignore
+```
+
+## Network firewall
+
+The firewall initializes automatically on container start. It restricts outbound traffic to:
 
 - `api.anthropic.com`
 - `sentry.io`
@@ -47,13 +75,13 @@ All other outbound traffic is blocked.
 
 | Volume | Purpose |
 |---|---|
-| `.:/workspace` | Your project directory mounted into the container |
+| `..:/workspace` | Repo root mounted into the container |
 | `~/.claude:/home/claude/.claude` | Bind-mount of host Claude config (OAuth session, settings) |
 | `claude-code-bashhistory:/commandhistory` | Persistent shell history across rebuilds |
 
 ## Configuration
 
-Build args can be customized in `docker-compose.yml`:
+Build args can be customized in `docker/docker-compose.yml`:
 
 | Arg | Default | Description |
 |---|---|---|
