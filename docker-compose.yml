@@ -1,0 +1,29 @@
+services:
+  claude-code:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TZ: "${TZ:-America/Los_Angeles}"
+        CLAUDE_CODE_VERSION: "latest"
+        GIT_DELTA_VERSION: "0.18.2"
+        ZSH_IN_DOCKER_VERSION: "1.2.0"
+    container_name: claude-uv-container
+    stdin_open: true
+    tty: true
+    user: claude
+    working_dir: /workspace
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - .:/workspace:delegated
+      - claude-code-bashhistory:/commandhistory
+      - ${HOME}/.claude:/home/claude/.claude:cached
+    environment:
+      CLAUDE_CONFIG_DIR: "/home/claude/.claude"
+      POWERLEVEL9K_DISABLE_GITSTATUS: "true"
+    command: bash -c "sudo /usr/local/bin/init-firewall.sh && exec zsh"
+
+volumes:
+  claude-code-bashhistory:
