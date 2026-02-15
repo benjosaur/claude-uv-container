@@ -137,6 +137,10 @@ celerybeat.pid
 # Git worktrees
 worktrees/
 
+# Cloned project repos (keep the dir, ignore contents)
+projects/*
+!projects/.gitkeep
+
 # Environments
 .env
 .envrc

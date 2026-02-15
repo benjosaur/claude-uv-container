@@ -16,17 +16,29 @@ A Docker container for running [Claude Code](https://claude.ai) with [uv](https:
 - Docker Desktop (Apple Silicon / ARM64 supported)
 - Claude Code logged in on your host machine (`~/.claude` must exist with a valid session)
 
-## Quick start
+## Setup
 
 ```bash
+git clone https://github.com/youruser/claude-uv-container.git
+cd claude-uv-container
+
 # Start the container
 docker compose -f docker/docker-compose.yml up -d --build
-
-# Run Claude Code inside it
-docker exec -it claude-uv-container claude
 ```
 
-Your host's `~/.claude` OAuth session is bind-mounted in, so no login is required.
+## Working on a project
+
+Clone a repo into `projects/` on your Mac, then run Claude on it inside the container:
+
+```bash
+# Clone on host (container firewall blocks github.com)
+git clone https://github.com/user/some-repo.git projects/some-repo
+
+# Run Claude on it inside the container
+docker exec -it -w /workspace/projects/some-repo claude-uv-container claude
+```
+
+The `projects/` directory is bind-mounted into the container at `/workspace/projects/` — same files, no copy needed. Your host's `~/.claude` OAuth session is also mounted in, so no login is required.
 
 ## Spawning worktree instances
 
@@ -54,6 +66,7 @@ claude-uv-container/
 │   ├── Dockerfile
 │   ├── docker-compose.yml
 │   └── init-firewall.sh
+├── projects/               # clone repos here (gitignored)
 ├── worktrees/              # git worktrees (gitignored)
 ├── spawn.sh
 ├── README.md
