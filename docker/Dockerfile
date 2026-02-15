@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM debian:bookworm-slim
 
 ARG TZ
 ENV TZ="$TZ"
@@ -70,17 +70,17 @@ ARG ZSH_IN_DOCKER_VERSION=1.2.0
 RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v${ZSH_IN_DOCKER_VERSION}/zsh-in-docker.sh)" -- \
   -p git \
   -p fzf \
-  -a "source /usr/share/doc/fzf/examples/key-bindings.zsh" \
-  -a "source /usr/share/doc/fzf/examples/completion.zsh" \
+  -a "[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh" \
+  -a "[ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh" \
   -a "export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhistory/.bash_history" \
   -x
 
 # Install uv (Python package/project manager)
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+RUN curl -LsSf https://astral.sh/uv/install.sh | bash
 ENV PATH="/home/${USERNAME}/.local/bin:$PATH"
 
 # Install Claude Code via native installer (no Node.js needed)
-RUN curl -fsSL https://claude.ai/install.sh | sh
+RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/${USERNAME}/.claude/bin:$PATH"
 
 # Copy and set up firewall script
