@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   procps \
   sudo \
   fzf \
+  tmux \
   zsh \
   man-db \
   unzip \
@@ -82,6 +83,10 @@ ENV PATH="/home/${USERNAME}/.local/bin:$PATH"
 # Install Claude Code via native installer (no Node.js needed)
 RUN curl -fsSL https://claude.ai/install.sh | bash
 ENV PATH="/home/${USERNAME}/.claude/bin:$PATH"
+
+# Copy in-container spawn script (tmux-based)
+COPY docker/spawn-tmux.sh /usr/local/bin/
+RUN echo 'source /usr/local/bin/spawn-tmux.sh' >> ~/.zshrc
 
 # Copy and set up firewall script
 COPY docker/init-firewall.sh /usr/local/bin/

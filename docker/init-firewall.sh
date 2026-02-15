@@ -38,6 +38,8 @@ ipset create allowed-domains hash:net
 # Resolve and add allowed domains
 for domain in \
     "api.anthropic.com" \
+    "platform.claude.ai" \
+    "claude.ai" \
     "sentry.io" \
     "statsig.anthropic.com" \
     "statsig.com" \

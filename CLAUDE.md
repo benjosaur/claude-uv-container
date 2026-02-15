@@ -12,28 +12,31 @@ Sandboxed Docker container for running Claude Code with uv. All container config
 docker compose -f docker/docker-compose.yml up -d --build
 ```
 
-### 2. Run Claude Code in iTerm
+### 2. Connect with tmux
 
 ```bash
-docker exec -it claude-uv-container claude
+docker exec -it claude-uv-container tmux new-session -A -s main
 ```
 
-This opens an interactive Claude Code session inside the container, visible in your current iTerm pane.
+This creates (or reattaches to) a tmux session inside the container. From here you can run `claude` or use `spawn` to create parallel instances.
 
-### 3. Spawn more Claude instances in new iTerm splits
+### 3. Spawn more Claude instances
+
+Inside the tmux session:
 
 ```bash
-source spawn.sh
 spawn feature/my-thing -p "implement the login flow"
 ```
 
 Each spawn:
 
 1. Creates a git worktree at `worktrees/<name>/` with a new branch
-2. Opens a new iTerm split pane
-3. Runs `docker exec` into the **same running container**, starting another claude instance pointed at the worktree
+2. Splits the current tmux pane
+3. Runs `claude` in the new pane pointed at the worktree
 
-You can spawn as many as you want — they all share the single container (and its firewall, auth session, etc).
+Detach with `Ctrl-b d` — all sessions keep running. Reconnect with the same `docker exec` command.
+
+Alternatively, use `spawn.sh` from the host for iTerm splits (see below).
 
 ### 4. Stop
 
@@ -54,5 +57,6 @@ docker compose -f docker/docker-compose.yml down
 - `docker/Dockerfile` — container image definition
 - `docker/docker-compose.yml` — compose config (build context is repo root `..`)
 - `docker/init-firewall.sh` — network firewall, runs automatically on container start
+- `docker/spawn-tmux.sh` — in-container tmux spawn function (copied into image)
 - `spawn.sh` — host-side iTerm worktree spawner (not part of Docker build)
 - `worktrees/` — git worktrees created by spawn (gitignored)

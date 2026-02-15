@@ -42,17 +42,41 @@ The `projects/` directory is bind-mounted into the container at `/workspace/proj
 
 ## Spawning worktree instances
 
-`spawn.sh` is a host-side script (macOS/iTerm) that creates git worktrees and opens new iTerm splits running Claude Code inside the container.
+### In-container (tmux)
 
-Add it to your `~/.zshrc` so it's always available:
+Connect to the container with a tmux session, then spawn Claude instances in new panes — no host-side tools needed:
+
+```bash
+# Connect (creates session on first run, reattaches after)
+docker exec -it claude-uv-container tmux new-session -A -s main
+
+# Spawn a Claude instance in a new tmux pane
+spawn feature/my-thing -p "implement the login flow"
+```
+
+Each `spawn` creates a git worktree and splits the current tmux pane with Claude running in it.
+
+Detach with `Ctrl-b d` — all sessions keep running. Reconnect anytime with the same `docker exec` command.
+
+<details>
+<summary>tmux basics</summary>
+
+| Key | Action |
+|---|---|
+| `Ctrl-b d` | Detach (sessions persist) |
+| `Ctrl-b %` | Manual vertical split |
+| `Ctrl-b "` | Manual horizontal split |
+| `Ctrl-b o` | Switch pane |
+| `Ctrl-b x` | Close pane |
+
+</details>
+
+### Host-side (iTerm)
+
+`spawn.sh` is an alternative for macOS/iTerm users that creates iTerm splits instead of tmux panes:
 
 ```bash
 source ~/Projects/claude-uv-container/spawn.sh
-```
-
-Then spawn parallel Claude instances:
-
-```bash
 spawn feature/my-thing -p "implement the login flow"
 ```
 
@@ -65,7 +89,8 @@ claude-uv-container/
 ├── docker/
 │   ├── Dockerfile
 │   ├── docker-compose.yml
-│   └── init-firewall.sh
+│   ├── init-firewall.sh
+│   └── spawn-tmux.sh
 ├── projects/               # clone repos here (gitignored)
 ├── worktrees/              # git worktrees (gitignored)
 ├── spawn.sh
@@ -78,6 +103,7 @@ claude-uv-container/
 The firewall initializes automatically on container start. It restricts outbound traffic to:
 
 - `api.anthropic.com`
+- `platform.claude.ai` / `claude.ai` (OAuth)
 - `sentry.io`
 - `statsig.anthropic.com` / `statsig.com`
 - `pypi.org` / `files.pythonhosted.org`
